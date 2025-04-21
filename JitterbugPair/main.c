@@ -18,9 +18,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <libimobiledevice-glue/utils.h>
-#include "common/userpref.h"
 
+#include "common/userpref.h"
 #include <libimobiledevice/libimobiledevice.h>
 #include <libimobiledevice/lockdown.h>
 
@@ -75,7 +74,7 @@ int print_help(void) {
     return EXIT_FAILURE;
 }
 
-int main(int argc, const char * argv[]) {
+int main(int argc, char * argv[]) {
     int c = 0;
     char *path = NULL;
     char *udid = NULL;
@@ -127,8 +126,9 @@ int main(int argc, const char * argv[]) {
             goto leave;
         }
     }
-    if (!path) {
-        asprintf(&path, "%s.mobiledevicepairing", udid);
+    if (!path && asprintf(&path, "%s.mobiledevicepairing", udid) == -1) {
+        result = EXIT_FAILURE;
+        goto leave;
     }
     
     lerr = lockdownd_client_new(device, &client, TOOL_NAME);
@@ -181,7 +181,7 @@ int main(int argc, const char * argv[]) {
         goto leave;
     }
     
-    if (!plist_write_to_filename(pair_record, path, PLIST_FORMAT_XML)) {
+    if (plist_write_to_file(pair_record, path, PLIST_FORMAT_XML, PLIST_OPT_NONE) != PLIST_ERR_SUCCESS) {
         result = EXIT_FAILURE;
         goto leave;
     }
